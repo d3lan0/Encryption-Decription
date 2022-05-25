@@ -6,9 +6,15 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
+
         List<String> arg = new ArrayList<>(Arrays.asList(args));
-        String action = arg.get(arg.indexOf("-mode") + 1);
-        int key = Integer.parseInt(arg.get(arg.indexOf("-key") + 1));
+//If there is no -mode, the program should work in enc mode.
+        String action = arg.contains("-mode") ? arg.get(arg.indexOf("-mode") + 1) : "enc";
+
+//If there is no -key, the program should consider that key = 0.
+        int key = arg.contains("-key") ? Integer.parseInt(arg.get(arg.indexOf("-key") + 1)) : 0;
+
+//If there is no -data, and there is no -in the program should assume that the data is an empty string.
         String data = arg.get(arg.indexOf("-data") + 1);
 
 
@@ -20,6 +26,7 @@ public class Main {
         }
 
     }
+
     public static char[] dataToArr(String input) {
         char[] out = new char[input.length()];
         for (int i = 0; i <input.length(); i++) {
