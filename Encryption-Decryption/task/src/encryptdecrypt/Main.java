@@ -2,6 +2,8 @@ package encryptdecrypt;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,12 +19,25 @@ public class Main {
         //If there is no -key, the program should consider that key = 0.
         int key = arg.contains("-key") ? Integer.parseInt(arg.get(arg.indexOf("-key") + 1)) : 0;
         String data = getData(arg);
+        System.out.println(data);
 
         char[] input = dataToArr(data);
         char[] output = action.equals("enc") ? encode(input, key) : decode(input,key);
 
-        for (char value : output) {
-            System.out.print(value);
+        if (!arg.contains("-out") ){
+            for (char value : output) {
+                System.out.print(value);
+            }
+        } else {
+            File file = new File(arg.get(arg.indexOf("-out")+1));
+            try(FileWriter writer = new FileWriter(file)) {
+                for (char value : output) {
+                    writer.write(value);
+                }
+            }catch (IOException e) {
+                System.out.printf("An exception occurred %s", e.getMessage());
+            }
+
         }
 
     }
@@ -82,7 +97,7 @@ public class Main {
             File file = new File(args.get(args.indexOf("-in") + 1));
             try (Scanner scanner = new Scanner(file)) {
                 while (scanner.hasNext()) {
-                    data = scanner.next();
+                    data = scanner.nextLine();
                 }
             } catch (FileNotFoundException e) {
                 System.out.println("Error, file does not exist!");
