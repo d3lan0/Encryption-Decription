@@ -1,28 +1,43 @@
 package encryptdecrypt;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
 
         List<String> arg = new ArrayList<>(Arrays.asList(args));
-//If there is no -mode, the program should work in enc mode.
+
+        //If there is no -mode, the program should work in enc mode.
         String action = arg.contains("-mode") ? arg.get(arg.indexOf("-mode") + 1) : "enc";
-
-//If there is no -key, the program should consider that key = 0.
+        //If there is no -key, the program should consider that key = 0.
         int key = arg.contains("-key") ? Integer.parseInt(arg.get(arg.indexOf("-key") + 1)) : 0;
-
-//If there is no -data, and there is no -in the program should assume that the data is an empty string.
-        String data = arg.get(arg.indexOf("-data") + 1);
-
+        String data = getData(arg);
+        System.out.println(data);
 
         char[] input = dataToArr(data);
         char[] output = action.equals("enc") ? encode(input, key) : decode(input,key);
 
-        for (char value : output) {
-            System.out.print(value);
+        if (!arg.contains("-out") ){
+            for (char value : output) {
+                System.out.print(value);
+            }
+        } else {
+            File file = new File(arg.get(arg.indexOf("-out")+1));
+            try(FileWriter writer = new FileWriter(file)) {
+                for (char value : output) {
+                    writer.write(value);
+                }
+            }catch (IOException e) {
+                System.out.printf("An exception occurred %s", e.getMessage());
+            }
+
         }
 
     }
@@ -63,6 +78,38 @@ public class Main {
             }
         }
         return encodedValue;
+    }
+
+    public static String getData(List<String> args) {
+        String data = null;
+        //If there is no -data, and there is no -in the program should assume that the data is an empty string.
+        if (!args.contains("-in") || !args.contains("-data")) {
+            data = "";
+        }
+
+        //If there are both -data and -in arguments, your program should prefer -data over -in.
+        if (args.contains("-in") && args.contains("-data")) {
+            data = args.get(args.indexOf("-data") + 1);
+        }
+
+        //If arguments contain -in, read data from file. Throw exception if file does not exist.
+        if (args.contains("-in")) {
+            File file = new File(args.get(args.indexOf("-in") + 1));
+            try (Scanner scanner = new Scanner(file)) {
+                while (scanner.hasNext()) {
+                    data = scanner.nextLine();
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println("Error, file does not exist!");
+            }
+        }
+        //if
+        if (args.contains("-data")) {
+
+           data = args.get(args.indexOf("-data") + 1);
+        }
+
+        return data;
     }
 
 }
