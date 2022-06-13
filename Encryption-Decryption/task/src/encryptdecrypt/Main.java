@@ -4,50 +4,41 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
 
-        List<String> arg = new ArrayList<>(Arrays.asList(args));
+        if (args.length % 2 != 0){
+            System.out.println("Error, invalid arguments.");
+            return;
+        }
 
-        //If there is no -mode, the program should work in enc mode.
-        String action = arg.contains("-mode") ? arg.get(arg.indexOf("-mode") + 1) : "enc";
-        //If there is no -key, the program should consider that key = 0.
-        int key = arg.contains("-key") ? Integer.parseInt(arg.get(arg.indexOf("-key") + 1)) : 0;
+        HashMap<String, String> arg = new HashMap<>();
+
+        for (int i = 0; i < args.length; i+=2){
+            arg.put(args[i], args[i+1]);
+        }
+
+        String action = arg.getOrDefault("-mode", "enc");
+        int key = Integer.parseInt(arg.getOrDefault("-key", "0"));
         String data = getData(arg);
-        System.out.println(data);
-
-        char[] input = dataToArr(data);
+        char[] input = data.toCharArray();
         char[] output = action.equals("enc") ? encode(input, key) : decode(input,key);
 
-        if (!arg.contains("-out") ){
-            for (char value : output) {
-                System.out.print(value);
-            }
+
+        if (!arg.containsKey("-out") ){
+            System.out.print(String.valueOf(output));
         } else {
-            File file = new File(arg.get(arg.indexOf("-out")+1));
+            File file = new File(arg.get("-out"));
             try(FileWriter writer = new FileWriter(file)) {
-                for (char value : output) {
-                    writer.write(value);
-                }
-            }catch (IOException e) {
+                writer.write(String.valueOf(output));
+            } catch (IOException e) {
                 System.out.printf("An exception occurred %s", e.getMessage());
             }
 
         }
 
-    }
-
-    public static char[] dataToArr(String input) {
-        char[] out = new char[input.length()];
-        for (int i = 0; i <input.length(); i++) {
-            out[i] =input.charAt(i);
-        }
-        return out;
     }
 
     public static char[] encode(char[] arr, int key) {
@@ -80,21 +71,24 @@ public class Main {
         return encodedValue;
     }
 
-    public static String getData(List<String> args) {
-        String data = null;
-        //If there is no -data, and there is no -in the program should assume that the data is an empty string.
-        if (!args.contains("-in") || !args.contains("-data")) {
-            data = "";
+    public static String getData(HashMap<String, String> arg) {
+
+        if (!arg.containsKey("-in") && !arg.containsKey("-data")) {
+            return "";
         }
 
-        //If there are both -data and -in arguments, your program should prefer -data over -in.
-        if (args.contains("-in") && args.contains("-data")) {
-            data = args.get(args.indexOf("-data") + 1);
+        if (arg.containsKey("-in") && arg.containsKey("-data")) {
+            return arg.get("-data");
+        }
+
+        if (arg.containsKey("-data")) {
+            return arg.get("-data");
         }
 
         //If arguments contain -in, read data from file. Throw exception if file does not exist.
-        if (args.contains("-in")) {
-            File file = new File(args.get(args.indexOf("-in") + 1));
+        String data = null;
+        if (arg.containsKey("-in")) {
+            File file = new File(arg.get("-in"));
             try (Scanner scanner = new Scanner(file)) {
                 while (scanner.hasNext()) {
                     data = scanner.nextLine();
@@ -103,12 +97,6 @@ public class Main {
                 System.out.println("Error, file does not exist!");
             }
         }
-        //if
-        if (args.contains("-data")) {
-
-           data = args.get(args.indexOf("-data") + 1);
-        }
-
         return data;
     }
 
